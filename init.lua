@@ -298,6 +298,85 @@ require('lazy').setup({
       -- Adds a number of user-friendly snippets
       'rafamadriz/friendly-snippets',
     },
+    config = function()
+      require('cmp').setup({
+        formatting = {
+          format = function(entry, vim_item)
+            vim_item.menu = ({
+              rg = '[Rg]',
+              buffer = '[Buffer]',
+              nvim_lsp = '[LSP]',
+              vsnip = '[Snippet]',
+              tags = '[Tag]',
+              path = '[Path]',
+              orgmode = '[Org]',
+              ['vim-dadbod-completion'] = '[DB]',
+            })[entry.source.name]
+            return vim_item
+          end,
+        },
+        sources = {
+          { name = 'nvim_lsp' },
+          { name = 'vsnip' },
+          { name = 'buffer' },
+          { name = 'tags', keyword_length = 2 },
+          { name = 'rg', keyword_length = 3 },
+          { name = 'path' },
+          { name = 'orgmode' },
+        },
+        -- snippet = {
+        --   expand = function(args)
+        --     vim.fn['vsnip#anonymous'](args.body)
+        --   end,
+        -- },
+        -- mapping = cmp.mapping.preset.insert({
+        --   ['<CR>'] = function(fallback)
+        --     if vim.fn['vsnip#expandable']() ~= 0 then
+        --       vim.fn.feedkeys(utils.esc('<Plug>(vsnip-expand)'), '')
+        --       return
+        --     end
+        --     return cmp.mapping.confirm({ select = true, behavior = cmp.ConfirmBehavior.Replace })(fallback)
+        --   end,
+        --   ['<C-Space>'] = cmp.mapping(
+        --     cmp.mapping.complete({
+        --       config = {
+        --         sources = {
+        --           { name = 'nvim_lsp' },
+        --           { name = 'path' },
+        --         },
+        --       },
+        --     }),
+        --     { 'i' }
+        --   ),
+        --   ['<Tab>'] = cmp.mapping(function()
+        --     if vim.fn['vsnip#jumpable'](1) > 0 then
+        --       vim.fn.feedkeys(utils.esc('<Plug>(vsnip-jump-next)'), '')
+        --     elseif vim.fn['vsnip#expandable']() > 0 then
+        --       vim.fn.feedkeys(utils.esc('<Plug>(vsnip-expand)'), '')
+        --     else
+        --       vim.api.nvim_feedkeys(
+        --         vim.fn['copilot#Accept'](vim.api.nvim_replace_termcodes('<Tab>', true, true, true)),
+        --         'n',
+        --         true
+        --       )
+        --     end
+        --   end, { 'i', 's' }),
+        --
+        --   ['<S-Tab>'] = cmp.mapping(function(fallback)
+        --     if vim.fn['vsnip#jumpable'](-1) == 1 then
+        --       vim.fn.feedkeys(utils.esc('<Plug>(vsnip-jump-prev)'), '')
+        --     else
+        --       fallback()
+        --     end
+        --   end, { 'i', 's' }),
+        -- }),
+        -- window = {
+        --   documentation = {
+        --     border = 'rounded',
+        --   },
+        -- },
+      })
+    end
   },
 
   -- Useful plugin to show you pending keybinds.
@@ -791,12 +870,13 @@ require('lazy').setup({
    -- DB
   {
     'kristijanhusak/vim-dadbod-ui',
+    build = ':TSInstall sqlls',  -- :TSInstall sqlls
     dependencies = {
       {
         'tpope/vim-dadbod',
         lazy = true,
         config = function()
-          vim.g.db_ui_save_location = vim.fn.stdpath("config" .. require("plenary.path").path.sep .. "db_ui")
+          -- vim.g.db_ui_save_location = vim.fn.stdpath("config" .. require("plenary.path").path.sep .. "db_ui")
         end
       },
       {
@@ -814,16 +894,15 @@ require('lazy').setup({
             require("cmp").setup.buffer({ sources = { { name = "vim-dadbod-completion" } } })
           end
 
+          local autocomplete_group = vim.api.nvim_create_augroup('vimrc_autocompletion', { clear = true })
           vim.api.nvim_create_autocmd(
             "FileType",
             {
-              pattern = {
-                "sql",
-                "mysql",
-                "plsql",
-              },
+              pattern = { "sql", "mysql", "plsql" },
+              group = autocomplete_group,
               callback = function()
-                vim.schedule(db_completion)
+                -- vim.schedule(db_completion)
+                require("cmp").setup.buffer({ sources = { { name = "vim-dadbod-completion" } } })
               end,
             }
           )
