@@ -44,7 +44,7 @@ P.S. You can delete this when you're done too. It's your config now :)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
--- [[ Install `lazy.nvim` plugin manager ]]
+
 --    https://github.com/folke/lazy.nvim
 --    `:help lazy.nvim.txt` for more info
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
@@ -72,6 +72,43 @@ require('lazy').setup({
   'telescope-fzf-native',
   'nvim-treesitter/nvim-treesitter',
   'nvim-treesitter/nvim-treesitter-textobjects',
+
+  -- :cmd popup
+  {
+    "folke/noice.nvim",
+    event = "VeryLazy",
+    opts = {
+      -- add any options here
+    },
+    dependencies = {
+      -- if you lazy-load any plugin below, make sure to add proper `module="..."` entries
+      "MunifTanjim/nui.nvim",
+      -- OPTIONAL:
+      --   `nvim-notify` is only needed, if you want to use the notification view.
+      --   If not available, we use `mini` as the fallback
+      "rcarriga/nvim-notify",
+    },
+    config = function()
+      require("noice").setup({
+        lsp = {
+          -- override markdown rendering so that **cmp** and other plugins use **Treesitter**
+          override = {
+            ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+            ["vim.lsp.util.stylize_markdown"] = true,
+            ["cmp.entry.get_documentation"] = true,
+          },
+        },
+        -- you can enable a preset for easier configuration
+        presets = {
+          bottom_search = true, -- use a classic bottom cmdline for search
+          command_palette = true, -- position the cmdline and popupmenu together
+          long_message_to_split = true, -- long messages will be sent to a split
+          inc_rename = false, -- enables an input dialog for inc-rename.nvim
+          lsp_doc_border = false, -- add a border to hover docs and signature help
+        },
+      })
+    end
+  },
 
   -- Window resize
   {
@@ -752,25 +789,90 @@ require('lazy').setup({
   },
 
    -- DB
-  'tpope/vim-dadbod',
-  'kristijanhusak/vim-dadbod-completion',
   {
-     'kristijanhusak/vim-dadbod-ui',
-     dependencies = {
-       { 'tpope/vim-dadbod', lazy = true },
-       { 'kristijanhusak/vim-dadbod-completion', ft = { 'sql', 'mysql', 'plsql' }, lazy = true },
-     },
-     cmd = {
-       'DBUI',
-       'DBUIToggle',
-       'DBUIAddConnection',
-       'DBUIFindBuffer',
-     },
-     init = function()
-       -- Your DBUI configuration
-       vim.g.db_ui_use_nerd_fonts = 1
-     end,
+    'kristijanhusak/vim-dadbod-ui',
+    dependencies = {
+      {
+        'tpope/vim-dadbod',
+        lazy = true,
+        config = function()
+          vim.g.db_ui_save_location = vim.fn.stdpath("config" .. require("plenary.path").path.sep .. "db_ui")
+        end
+      },
+      {
+        'kristijanhusak/vim-dadbod-completion',
+        ft = { 'sql', 'mysql', 'plsql' },
+        lazy = true,
+        config = function()
+          vim.api.nvim_create_autocmd(
+            "FileType",
+            { pattern = { "sql", },
+              command = [[setlocal omnifunc=vim_dadbod_completion#omni]],
+            })
+
+          local function db_completion()
+            require("cmp").setup.buffer({ sources = { { name = "vim-dadbod-completion" } } })
+          end
+
+          vim.api.nvim_create_autocmd(
+            "FileType",
+            {
+              pattern = {
+                "sql",
+                "mysql",
+                "plsql",
+              },
+              callback = function()
+                vim.schedule(db_completion)
+              end,
+            }
+          )
+        end
+      },
+    },
+    cmd = {
+      'DBUI',
+      'DBUIToggle',
+      'DBUIAddConnection',
+      'DBUIFindBuffer',
+    },
+    build = ':TSInstall sql',
+    init = function()
+      -- Your DBUI configuration
+      vim.g.db_ui_use_nerd_fonts = 1
+
+      vim.api.nvim_set_keymap(
+        "n",
+        "<leader>Da",
+        ":DBUIAddConnection<CR>",
+        { noremap = true, desc = '[D]B [A]dd connection' })
+
+      vim.api.nvim_set_keymap(
+        "n",
+        "<leader>Du",
+        ":DBUIToggle<CR>",
+        { noremap = true, desc = '[D]B toggle [U]I' })
+
+      vim.api.nvim_set_keymap(
+        "n",
+        "<leader>Df",
+        ":DBUIFindBuffer<CR>",
+        { noremap = true, desc = '[D]B [F]ind buffer' })
+
+      vim.api.nvim_set_keymap(
+        "n",
+        "<leader>Dr",
+        ":DBUIRenameBuffer<CR>",
+        { noremap = true, desc = '[D]B [R]ename buffer' })
+
+      vim.api.nvim_set_keymap(
+        "n",
+        "<leader>Dq",
+        ":DBUILastQueryInfo<CR>",
+        { noremap = true, desc = '[D]B last [Q]uery info' })
+    end,
   },
+
 }, {})
 
 -- [[ Setting options ]]
@@ -977,7 +1079,7 @@ vim.keymap.set('n', '<leader>vs', ':source ~/.config/nvim/init.lua<cr>', { desc 
 vim.defer_fn(function()
   require('nvim-treesitter.configs').setup({
     -- Add languages to be installed here that you want installed for treesitter
-    ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash' },
+    ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash', 'sql' },
 
     -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
     auto_install = false,
