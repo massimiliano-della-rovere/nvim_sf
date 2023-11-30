@@ -131,6 +131,9 @@ require('lazy').setup({
     end
   },
 
+  -- navigation shortcuts
+  'tpope/vim-unimpaired',
+
   -- Git related plugins
   'tpope/vim-fugitive',
   'tpope/vim-rhubarb',
