@@ -1024,8 +1024,13 @@ vim.opt.listchars = {
 vim.o.showbreak = '⮎' -- ⤷ +++
 
 -- folding
-vim.o.foldmethod = 'syntax'
+-- vim.o.foldmethod = 'syntax'
 vim.o.foldlevel = 0
+vim.o.foldmethod = 'expr'
+vim.o.foldexpr = 'nvim_treesitter#foldexpr()'
+vim.o.foldminlines = 5
+vim.o.foldnestmax = 10
+vim.api.nvim_set_hl(0, 'Folded', { bg = '#403000', fg = '#FF40FF' })
 
 -- spell languages
 vim.o.spell = false
