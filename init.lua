@@ -134,17 +134,67 @@ require('lazy').setup({
   -- navigation shortcuts
   'tpope/vim-unimpaired',
 
-  -- Git related plugins
+  -- git integration
   'tpope/vim-fugitive',
+  -- git :GBrowse
   'tpope/vim-rhubarb',
+  -- git operation symbols on the symbol bar
   'airblade/vim-gitgutter',
---  'ap/vim-css-color',
+  -- git blame
+  { 'f-person/git-blame.nvim', event = 'VeryLazy' },
 
   -- Detect tabstop and shiftwidth automatically
   'tpope/vim-sleuth',
 
   -- tmux integration
   'christoomey/vim-tmux-navigator',
+
+  -- quickfix list enhancements
+  {
+    'kevinhwang91/nvim-bqf',
+    event = 'VeryLazy',
+    opts = {},
+  },
+
+  -- improved folding ufo = (yo)u fo(ld)
+  -- {
+  --   'kevinhwang91/nvim-ufo',
+  --   dependencies = { 'kevinhwang91/promise-async' },
+  --   config = function()
+  --     local ufo = require('ufo')
+  --
+  --     ufo.setup({
+  --       provider_selector = function(bufnr, filetype, buftype)
+  --         return {'treesitter', 'indent'}
+  --       end
+  --     })
+  --
+  --     -- vim.o.foldenable = true
+  --     -- vim.o.foldcolumn = '1' -- '0' is not bad
+  --     -- vim.o.foldlevel = 99 -- Using ufo provider need a large value, feel free to decrease the value
+  --     -- vim.o.foldlevelstart = 99
+  --     -- vim.o.foldenable = true
+  --
+  --     -- Using ufo provider need remap `zR` and `zM`. If Neovim is 0.6.1, remap yourself
+  --     vim.keymap.set(
+  --       'n', 'zR',
+  --       ufo.openAllFolds,
+  --       { noremap = true, desc = 'Open all folds' })
+  --     vim.keymap.set(
+  --       'n', 'zM',
+  --       ufo.closeAllFolds,
+  --       { noremap = true, desc = 'Open all folds' })
+  --     vim.keymap.set(
+  --       'n', 'zK',
+  --       function()
+  --         local winid = ufo.peekFoldedLinesUnderCursor()
+  --         if not winid then
+  --           vim.lsp.buf.hover()
+  --         end
+  --       end,
+  --       { noremap = true, desc = 'Peek fold' })
+  --   end
+  -- },
 
   -- comment/uncomment code
   {
@@ -300,6 +350,9 @@ require('lazy').setup({
 
       -- Adds a number of user-friendly snippets
       'rafamadriz/friendly-snippets',
+
+      -- icons in the menu
+      'onsails/lspkind.nvim',
     },
     config = function()
       require('cmp').setup({
@@ -401,36 +454,42 @@ require('lazy').setup({
         vim.keymap.set(
           'n', '<leader>hp',
           require('gitsigns').preview_hunk,
-          { buffer = bufnr, desc = 'Preview git hunk' })
+          { buffer = bufnr, desc = 'Git: [H]unk [P]review' })
         vim.keymap.set(
           'n', '<leader>hs',
           ':GitGutterStageHunk',
-          { buffer = bufnr, desc = 'Stage git hunk' })
+          { buffer = bufnr, desc = 'Git: [H]unk [S]tage' })
         vim.keymap.set(
           'n', '<leader>hu',
           ':GitGutterUndoHunk',
-          { buffer = bufnr, desc = 'Undo git hunk' })
+          { buffer = bufnr, desc = 'Git: [H]unk [U]ndo' })
 
         -- don't override the built-in and fugitive keymaps
         local gs = package.loaded.gitsigns
-        vim.keymap.set({ 'n', 'v' }, ']c', function()
-          if vim.wo.diff then
-            return ']c'
-          end
-          vim.schedule(function()
-            gs.next_hunk()
-          end)
-          return '<Ignore>'
-        end, { expr = true, buffer = bufnr, desc = 'Jump to next hunk' })
-        vim.keymap.set({ 'n', 'v' }, '[c', function()
-          if vim.wo.diff then
-            return '[c'
-          end
-          vim.schedule(function()
-            gs.prev_hunk()
-          end)
-          return '<Ignore>'
-        end, { expr = true, buffer = bufnr, desc = 'Jump to previous hunk' })
+        vim.keymap.set(
+          { 'n', 'v' }, ']c',
+          function()
+            if vim.wo.diff then
+              return ']c'
+            end
+            vim.schedule(function()
+              gs.next_hunk()
+            end)
+            return '<Ignore>'
+          end,
+          { expr = true, buffer = bufnr, desc = 'Git: to next [C]hange' })
+        vim.keymap.set(
+          { 'n', 'v' }, '[c',
+          function()
+            if vim.wo.diff then
+              return '[c'
+            end
+            vim.schedule(function()
+              gs.prev_hunk()
+            end)
+            return '<Ignore>'
+          end,
+          { expr = true, buffer = bufnr, desc = 'Git: to prev [C]hange' })
       end,
     },
   },
@@ -463,6 +522,41 @@ require('lazy').setup({
       })
       vim.api.nvim_set_hl(0, 'MatchArea', { bg = '#4A2400' })
     end
+  },
+
+  {
+    'Wansmer/treesj',
+    -- keys = { '<space>m', '<space>j', '<space>s' },
+    dependencies = { 'nvim-treesitter/nvim-treesitter' },
+    cmd = { "TSJToggle", "TSJSplit", "TSJJoin" },
+    config = function()
+      local tsj = require('treesj')
+
+      tsj.setup({ use_default_keymaps = false })
+
+      -- For use default preset and it work with dot
+      vim.keymap.set(
+        'n', '<leader>tj',
+        tsj.join,
+        { desc = "[T]ree split/[J]oin", noremap = true } )
+      -- For use default preset and it work with dot
+      vim.keymap.set(
+        'n', '<leader>ts',
+        tsj.split,
+        { desc = "[T]ree [S]plit/join", noremap = true } )
+      -- For use default preset and it work with dot
+      vim.keymap.set(
+        'n', '<leader>tm',
+        tsj.toggle,
+        { desc = "[T]ree split/join shallow [T]oggle", noremap = true } )
+      -- For extending default preset with `recursive = true`, but this doesn't work with dot
+      vim.keymap.set(
+        'n', '<leader>tM',
+        function()
+          tsj.toggle({ split = { recursive = true } })
+        end,
+        { desc = "[T]ree split/join recursive [T]oggle", noremap = true } )
+    end,
   },
 
   -- rainbow matching delimiter symbols
@@ -1028,6 +1122,7 @@ vim.o.showbreak = '⮎' -- ⤷ +++
 
 -- folding
 -- vim.o.foldmethod = 'syntax'
+-- vim.o.foldenable = true
 vim.o.foldlevel = 0
 vim.o.foldmethod = 'expr'
 vim.o.foldexpr = 'nvim_treesitter#foldexpr()'
@@ -1341,12 +1436,15 @@ mason_lspconfig.setup_handlers {
 
 -- [[ Configure nvim-cmp ]]
 -- See `:help cmp`
-local cmp = require 'cmp'
-local luasnip = require 'luasnip'
+local cmp = require('cmp')
+local luasnip = require('luasnip')
 require('luasnip.loaders.from_vscode').lazy_load()
-luasnip.config.setup {}
+luasnip.config.setup({})
 
-cmp.setup {
+cmp.setup({
+  formatting = {
+    format = require('lspkind').cmp_format({ mode = 'symbol_text' }),
+  },
   snippet = {
     expand = function(args)
       luasnip.lsp_expand(args.body)
@@ -1388,7 +1486,23 @@ cmp.setup {
     { name = 'nvim_lsp' },
     { name = 'luasnip' },
   },
-}
+})
+-- gray
+vim.api.nvim_set_hl(0, 'CmpItemAbbrDeprecated', { bg='NONE', strikethrough=true, fg='#808080' })
+-- blue
+vim.api.nvim_set_hl(0, 'CmpItemAbbrMatch', { bg='NONE', fg='#569CD6' })
+vim.api.nvim_set_hl(0, 'CmpItemAbbrMatchFuzzy', { link='CmpIntemAbbrMatch' })
+-- light blue
+vim.api.nvim_set_hl(0, 'CmpItemKindVariable', { bg='NONE', fg='#9CDCFE' })
+vim.api.nvim_set_hl(0, 'CmpItemKindInterface', { link='CmpItemKindVariable' })
+vim.api.nvim_set_hl(0, 'CmpItemKindText', { link='CmpItemKindVariable' })
+-- pink
+vim.api.nvim_set_hl(0, 'CmpItemKindFunction', { bg='NONE', fg='#C586C0' })
+vim.api.nvim_set_hl(0, 'CmpItemKindMethod', { link='CmpItemKindFunction' })
+-- front
+vim.api.nvim_set_hl(0, 'CmpItemKindKeyword', { bg='NONE', fg='#D4D4D4' })
+vim.api.nvim_set_hl(0, 'CmpItemKindProperty', { link='CmpItemKindKeyword' })
+vim.api.nvim_set_hl(0, 'CmpItemKindUnit', { link='CmpItemKindKeyword' })
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
