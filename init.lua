@@ -67,6 +67,28 @@ vim.opt.rtp:prepend(lazypath)
 --  You can also configure plugins after the setup call,
 --    as they will be available in your neovim runtime.
 require('lazy').setup({
+  -- startup screen
+  {
+    'goolord/alpha-nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    config = function()
+      require('alpha').setup(require'alpha.themes.startify'.config)
+    end
+  },
+  -- {
+  --   'goolord/alpha-nvim',
+  --   config = function()
+  --       require('alpha').setup(require'alpha.themes.dashboard'.config)
+  --   end
+  -- },
+
+  -- search and replace
+  {
+    'nvim-pack/nvim-spectre',
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    opts = { is_block_ui_break = true },
+  },
+
   -- NOTE: First, some plugins that don't require any configuration
   'nvim-web-devicons',
   'telescope-fzf-native',
@@ -218,6 +240,9 @@ require('lazy').setup({
       require('nvim_comment').setup()
     end
   },
+
+  -- "gc"/"gb" to comment visual regions/lines
+  -- { 'numToStr/Comment.nvim', opts = {} },
 
   -- entire file text object ae/ie
   {
@@ -510,13 +535,13 @@ require('lazy').setup({
   },
 
   -- Colorscheme
-  {
-    'knghtbrd/tigrana',
-    priority = 2000,
-    config = function()
-      vim.cmd.colorscheme 'tigrana-256-dark'
-    end
-  },
+  -- {
+  --   'knghtbrd/tigrana',
+  --   priority = 2000,
+  --   config = function()
+  --     vim.cmd.colorscheme 'tigrana-256-dark'
+  --   end
+  -- },
   -- {
   --   -- Theme inspired by Atom
   --   'navarasu/onedark.nvim',
@@ -708,9 +733,6 @@ require('lazy').setup({
     main = 'ibl',
     opts = {},
   },
-
-  -- "gc"/"gb" to comment visual regions/lines
-  { 'numToStr/Comment.nvim', opts = {} },
 
   -- Fuzzy Finder (files, lsp, etc)
   {
