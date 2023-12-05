@@ -1103,6 +1103,9 @@ require('lazy').setup({
 
 vim.opt.path:append('**')
 
+-- Minimal number of screen lines to keep above and below the cursor.
+vim.o.scrolloff = 999
+
 -- crosshair on current character
 vim.o.cursorcolumn = true
 vim.o.cursorline = true
