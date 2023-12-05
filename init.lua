@@ -535,6 +535,13 @@ require('lazy').setup({
   },
 
   -- Colorscheme
+  {
+    'rebelot/kanagawa.nvim',
+    opts = { dimInactive = true },
+    config = function()
+      vim.cmd.colorscheme 'kanagawa-wave' -- kanagawa-dragon, kanagawa-lotus
+    end,
+  },
   -- {
   --   'knghtbrd/tigrana',
   --   priority = 2000,
@@ -560,7 +567,9 @@ require('lazy').setup({
         highlight_in_insert_mode = true, -- should highlighting also be done in insert mode
         delay = 100, -- delay before the highglight
       })
-      vim.api.nvim_set_hl(0, 'MatchArea', { bg = '#4A2400' })
+      if not string.find(vim.g.colors_name, '^kanagawa') then
+        vim.api.nvim_set_hl(0, 'MatchArea', { bg = '#4A2400' })
+      end
     end
   },
 
@@ -1165,7 +1174,9 @@ vim.o.foldmethod = 'expr'
 vim.o.foldexpr = 'nvim_treesitter#foldexpr()'
 vim.o.foldminlines = 5
 vim.o.foldnestmax = 10
-vim.api.nvim_set_hl(0, 'Folded', { bg = '#403000', fg = '#FF40FF' })
+if not string.find(vim.g.colors_name, '^kanagawa') then
+  vim.api.nvim_set_hl(0, 'Folded', { bg = '#403000', fg = '#FF40FF' })
+end
 
 -- spell languages
 vim.o.spell = false
@@ -1266,6 +1277,10 @@ vim.keymap.set('n', '<leader>/', function()
   })
 end, { desc = '[/] Fuzzily search in current buffer' })
 
+vim.keymap.set('n', '<M-l>', '<CMD>bnext<CR>', { noremap = true, desc = 'Next Buffer' })
+vim.keymap.set('n', '<M-h>', '<CMD>bprev<CR>', { noremap = true, desc = 'Prev Buffer' })
+vim.keymap.set('n', '<M-k>', '<CMD>bprev<CR>', { noremap = true, desc = 'Prev Buffer' })
+vim.keymap.set('n', '<M-j>', '<CMD>bnext<CR>', { noremap = true, desc = 'Next Buffer' })
 vim.keymap.set('n', '<leader>gf', require('telescope.builtin').git_files, { desc = 'Search [G]it [F]iles' })
 vim.keymap.set('n', '<leader>sf', require('telescope.builtin').find_files, { desc = '[S]earch [F]iles' })
 vim.keymap.set('n', '<leader>sh', require('telescope.builtin').help_tags, { desc = '[S]earch [H]elp' })
@@ -1524,22 +1539,24 @@ cmp.setup({
     { name = 'luasnip' },
   },
 })
--- gray
-vim.api.nvim_set_hl(0, 'CmpItemAbbrDeprecated', { bg='NONE', strikethrough=true, fg='#808080' })
--- blue
-vim.api.nvim_set_hl(0, 'CmpItemAbbrMatch', { bg='NONE', fg='#569CD6' })
-vim.api.nvim_set_hl(0, 'CmpItemAbbrMatchFuzzy', { link='CmpIntemAbbrMatch' })
--- light blue
-vim.api.nvim_set_hl(0, 'CmpItemKindVariable', { bg='NONE', fg='#9CDCFE' })
-vim.api.nvim_set_hl(0, 'CmpItemKindInterface', { link='CmpItemKindVariable' })
-vim.api.nvim_set_hl(0, 'CmpItemKindText', { link='CmpItemKindVariable' })
--- pink
-vim.api.nvim_set_hl(0, 'CmpItemKindFunction', { bg='NONE', fg='#C586C0' })
-vim.api.nvim_set_hl(0, 'CmpItemKindMethod', { link='CmpItemKindFunction' })
--- front
-vim.api.nvim_set_hl(0, 'CmpItemKindKeyword', { bg='NONE', fg='#D4D4D4' })
-vim.api.nvim_set_hl(0, 'CmpItemKindProperty', { link='CmpItemKindKeyword' })
-vim.api.nvim_set_hl(0, 'CmpItemKindUnit', { link='CmpItemKindKeyword' })
+if not string.find(vim.g.colors_name, '^kanagawa') then
+  -- gray
+  vim.api.nvim_set_hl(0, 'CmpItemAbbrDeprecated', { bg='NONE', strikethrough=true, fg='#808080' })
+  -- blue
+  vim.api.nvim_set_hl(0, 'CmpItemAbbrMatch', { bg='NONE', fg='#569CD6' })
+  vim.api.nvim_set_hl(0, 'CmpItemAbbrMatchFuzzy', { link='CmpIntemAbbrMatch' })
+  -- light blue
+  vim.api.nvim_set_hl(0, 'CmpItemKindVariable', { bg='NONE', fg='#9CDCFE' })
+  vim.api.nvim_set_hl(0, 'CmpItemKindInterface', { link='CmpItemKindVariable' })
+  vim.api.nvim_set_hl(0, 'CmpItemKindText', { link='CmpItemKindVariable' })
+  -- pink
+  vim.api.nvim_set_hl(0, 'CmpItemKindFunction', { bg='NONE', fg='#C586C0' })
+  vim.api.nvim_set_hl(0, 'CmpItemKindMethod', { link='CmpItemKindFunction' })
+  -- front
+  vim.api.nvim_set_hl(0, 'CmpItemKindKeyword', { bg='NONE', fg='#D4D4D4' })
+  vim.api.nvim_set_hl(0, 'CmpItemKindProperty', { link='CmpItemKindKeyword' })
+  vim.api.nvim_set_hl(0, 'CmpItemKindUnit', { link='CmpItemKindKeyword' })
+end
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
