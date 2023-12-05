@@ -567,7 +567,7 @@ require('lazy').setup({
         highlight_in_insert_mode = true, -- should highlighting also be done in insert mode
         delay = 100, -- delay before the highglight
       })
-      if not string.find(vim.g.colors_name, '^kanagawa') then
+      if not string.find(vim.g.colors_name or "", '^kanagawa') then
         vim.api.nvim_set_hl(0, 'MatchArea', { bg = '#4A2400' })
       end
     end
