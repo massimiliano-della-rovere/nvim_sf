@@ -155,9 +155,9 @@ require('lazy').setup({
       'anuvyklack/animation.nvim'
     },
     config = function()
-      vim.o.winwidth = 10
-      vim.o.winminwidth = 10
-      vim.o.equalalways = false
+      vim.opt.winwidth = 10
+      vim.opt.winminwidth = 10
+      vim.opt.equalalways = false
 
       require('windows').setup()
 
@@ -1103,57 +1103,63 @@ require('lazy').setup({
 
 vim.opt.path:append('**')
 
--- Minimal number of screen lines to keep above and below the cursor.
-vim.o.scrolloff = 999
+-- Preview changes in smaller window
+vim.opt.inccommand = "split"
 
--- crosshair on current character
-vim.o.cursorcolumn = true
-vim.o.cursorline = true
+-- Minimal number of screen lines to keep above and below the cursor.
+vim.opt.scrolloff = 999
+
+-- Virtual edit in visual "block" mode
+vim.opt.virtualedit = "block"
+
+-- Crosshair on current character
+vim.opt.cursorcolumn = true
+vim.opt.cursorline = true
 
 -- Set highlight on search
-vim.o.hlsearch = true
+vim.opt.hlsearch = true
 
 -- Make line numbers default
-vim.o.number = true
-vim.o.relativenumber = true
+vim.opt.number = true
+vim.opt.relativenumber = true
 
 -- Enable mouse mode
-vim.o.mouse = 'a'
+vim.opt.mouse = 'a'
 
 -- Sync clipboard between OS and Neovim.
 --  Remove this option if you want your OS clipboard to remain independent.
 --  See `:help 'clipboard'`
-vim.o.clipboard = 'unnamedplus'
+vim.opt.clipboard = 'unnamedplus'
 
 -- Enable break indent
-vim.o.breakindent = true
+vim.opt.breakindent = true
 
 -- Save undo history
-vim.o.undofile = true
+vim.opt.undofile = true
 
 -- search wraps at top from bottom
-vim.o.wrapscan = true
+vim.opt.wrapscan = true
 
 -- Case-insensitive searching UNLESS \C or capital in search
-vim.o.ignorecase = true
-vim.o.smartcase = true
+vim.opt.ignorecase = true
+vim.opt.smartcase = true
 
 -- Keep signcolumn on by default
 vim.wo.signcolumn = 'yes'
 
 -- Decrease update time
-vim.o.updatetime = 250
-vim.o.timeoutlen = 300
+vim.opt.updatetime = 250
+vim.opt.timeoutlen = 300
 
 -- Set completeopt to have a better completion experience
-vim.o.completeopt = 'menuone,noselect'
+vim.opt.completeopt = 'menuone,noselect'
 
 -- NOTE: You should make sure your terminal supports this
-vim.o.termguicolors = true
+vim.opt.termguicolors = true
 
 -- new split windows
-vim.o.splitbelow = true
-vim.o.splitright = true
+vim.opt.splitbelow = true
+vim.opt.splitright = true
 
 -- c-a and c-x target
 vim.opt.nrformats = { 'bin', 'octal', 'hex' }
@@ -1167,22 +1173,22 @@ vim.opt.listchars = {
   precedes = '‹',
   nbsp = '•',
   conceal = '×'}
-vim.o.showbreak = '⮎' -- ⤷ +++
+vim.opt.showbreak = '⮎' -- ⤷ +++
 
 -- folding
--- vim.o.foldmethod = 'syntax'
--- vim.o.foldenable = true
-vim.o.foldlevel = 0
-vim.o.foldmethod = 'expr'
-vim.o.foldexpr = 'nvim_treesitter#foldexpr()'
-vim.o.foldminlines = 5
-vim.o.foldnestmax = 10
+-- vim.opt.foldmethod = 'syntax'
+-- vim.opt.foldenable = true
+vim.opt.foldlevel = 0
+vim.opt.foldmethod = 'expr'
+vim.opt.foldexpr = 'nvim_treesitter#foldexpr()'
+vim.opt.foldminlines = 5
+vim.opt.foldnestmax = 10
 if not string.find(vim.g.colors_name, '^kanagawa') then
   vim.api.nvim_set_hl(0, 'Folded', { bg = '#403000', fg = '#FF40FF' })
 end
 
 -- spell languages
-vim.o.spell = false
+vim.opt.spell = false
 vim.opt.spelllang = { 'en_us', 'it', 'eo' }
 
 -- [[ Basic Keymaps ]]
