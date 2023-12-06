@@ -45,20 +45,24 @@ vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
 
---    https://github.com/folke/lazy.nvim
---    `:help lazy.nvim.txt` for more info
-local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
-  vim.fn.system {
-    "git",
-    "clone",
-    "--filter=blob:none",
-    "https://github.com/folke/lazy.nvim.git",
-    "--branch=stable", -- latest stable release
-    lazypath,
-  }
+function install_lazy_if_missing()
+  --    https://github.com/folke/lazy.nvim
+  --    `:help lazy.nvim.txt` for more info
+  local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+  if not vim.loop.fs_stat(lazypath) then
+    vim.fn.system {
+      "git",
+      "clone",
+      "--filter=blob:none",
+      "https://github.com/folke/lazy.nvim.git",
+      "--branch=stable", -- latest stable release
+      lazypath,
+    }
+  end
+  vim.opt.runtimepath:prepend(lazypath)
 end
-vim.opt.runtimepath:prepend(lazypath)
+
+install_lazy_if_missing()
 
 -- [[ Configure plugins ]]
 -- NOTE: Here is where you install your plugins.
@@ -491,21 +495,28 @@ require("lazy").setup({
         changedelete = { text = "~" },
       },
       on_attach = function(bufnr)
-        vim.keymap.set(
-          "n", "<leader>hp",
-          require("gitsigns").preview_hunk,
-          { buffer = bufnr, desc = "Git: [H]unk [P]review" })
-        vim.keymap.set(
-          "n", "<leader>hs",
-          ":GitGutterStageHunk",
-          { buffer = bufnr, desc = "Git: [H]unk [S]tage" })
-        vim.keymap.set(
-          "n", "<leader>hu",
-          ":GitGutterUndoHunk",
-          { buffer = bufnr, desc = "Git: [H]unk [U]ndo" })
+        -- vim.keymap.set(
+        --   "n", "<leader>hp",
+        --   require("gitsigns").preview_hunk,
+        --   { buffer = bufnr, desc = "Git: [H]unk [P]review" })
+        -- vim.keymap.set(
+        --   "n", "<leader>hs",
+        --   ":GitGutterStageHunk",
+        --   { buffer = bufnr, desc = "Git: [H]unk [S]tage" })
+        -- vim.keymap.set(
+        --   "n", "<leader>hu",
+        --   ":GitGutterUndoHunk",
+        --   { buffer = bufnr, desc = "Git: [H]unk [U]ndo" })
 
-        -- don"t override the built-in and fugitive keymaps
         local gs = package.loaded.gitsigns
+
+        local function map(mode, l, r, opts)
+          opts = opts or {}
+          opts.buffer = bufnr
+          vim.keymap.set(mode, l, r, opts)
+        end
+
+        -- Navigation
         vim.keymap.set(
           { "n", "v" }, "]c",
           function()
@@ -530,6 +541,36 @@ require("lazy").setup({
             return "<Ignore>"
           end,
           { expr = true, buffer = bufnr, desc = "Git: to prev [C]hange" })
+
+        -- Actions
+        -- visual mode
+        map('v', '<leader>hs', function()
+          gs.stage_hunk { vim.fn.line '.', vim.fn.line 'v' }
+        end, { desc = 'stage git hunk' })
+        map('v', '<leader>hr', function()
+          gs.reset_hunk { vim.fn.line '.', vim.fn.line 'v' }
+        end, { desc = 'reset git hunk' })
+        -- normal mode
+        map('n', '<leader>hs', gs.stage_hunk, { desc = 'git stage hunk' })
+        map('n', '<leader>hr', gs.reset_hunk, { desc = 'git reset hunk' })
+        map('n', '<leader>hS', gs.stage_buffer, { desc = 'git Stage buffer' })
+        map('n', '<leader>hu', gs.undo_stage_hunk, { desc = 'undo stage hunk' })
+        map('n', '<leader>hR', gs.reset_buffer, { desc = 'git Reset buffer' })
+        map('n', '<leader>hp', gs.preview_hunk, { desc = 'preview git hunk' })
+        map('n', '<leader>hb', function()
+          gs.blame_line { full = false }
+        end, { desc = 'git blame line' })
+        map('n', '<leader>hd', gs.diffthis, { desc = 'git diff against index' })
+        map('n', '<leader>hD', function()
+          gs.diffthis '~'
+        end, { desc = 'git diff against last commit' })
+
+        -- Toggles
+        map('n', '<leader>tb', gs.toggle_current_line_blame, { desc = 'toggle git blame line' })
+        map('n', '<leader>td', gs.toggle_deleted, { desc = 'toggle git show deleted' })
+
+        -- Text object
+        map({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>', { desc = 'select git hunk' })
       end,
     },
   },
@@ -685,7 +726,7 @@ require("lazy").setup({
     opts = {
       options = {
         icons_enabled = true,
-        theme = "onedark",
+        -- theme = "onedark",
         -- component_separators = { left = "", right = ""}, -- = "|",
         -- section_separators = { left = "", right = ""}, -- = "",
         section_separators = { left = "", right = "" },
@@ -1120,8 +1161,8 @@ vim.opt.cursorline = true
 vim.opt.hlsearch = true
 
 -- Make line numbers default
-vim.opt.number = true
-vim.opt.relativenumber = true
+vim.wo.number = true
+vim.wo.relativenumber = true
 
 -- Enable mouse mode
 vim.opt.mouse = "a"
@@ -1290,6 +1331,15 @@ vim.keymap.set("n", "<M-l>", "<CMD>bnext<CR>", { noremap = true, desc = "Next Bu
 vim.keymap.set("n", "<M-h>", "<CMD>bprev<CR>", { noremap = true, desc = "Prev Buffer" })
 vim.keymap.set("n", "<M-k>", "<CMD>bprev<CR>", { noremap = true, desc = "Prev Buffer" })
 vim.keymap.set("n", "<M-j>", "<CMD>bnext<CR>", { noremap = true, desc = "Next Buffer" })
+
+local function telescope_live_grep_open_files()
+  require('telescope.builtin').live_grep {
+    grep_open_files = true,
+    prompt_title = 'Live Grep in Open Files',
+  }
+end
+vim.keymap.set("n", "<leader>s/", telescope_live_grep_open_files, { desc = "[S]earch [/] in Open Files" })
+vim.keymap.set("n", "<leader>ss", ":SymbolsOutline<cr>", { desc = "[S]earch [S]ymbols outline" })
 vim.keymap.set("n", "<leader>gf", require("telescope.builtin").git_files, { desc = "Search [G]it [F]iles" })
 vim.keymap.set("n", "<leader>sf", require("telescope.builtin").find_files, { desc = "[S]earch [F]iles" })
 vim.keymap.set("n", "<leader>sh", require("telescope.builtin").help_tags, { desc = "[S]earch [H]elp" })
@@ -1299,7 +1349,6 @@ vim.keymap.set("n", "<leader>sG", ":LiveGrepGitRoot<cr>", { desc = "[S]earch by 
 vim.keymap.set("n", "<leader>sd", require("telescope.builtin").diagnostics, { desc = "[S]earch [D]iagnostics" })
 vim.keymap.set("n", "<leader>sr", require("telescope.builtin").resume, { desc = "[S]earch [R]esume" })
 
-vim.keymap.set("n", "<leader>ss", ":SymbolsOutline<cr>", { desc = "[S]earch [S]ymbols outline" })
 
 vim.keymap.set("n", "<c-h>", ":TmuxNavigateLeft<cr>", { desc = "Tmux Window Left" })
 vim.keymap.set("n", "<c-j>", ":TmuxNavigateDown<cr>", { desc = "Tmux Window Down" })
@@ -1389,7 +1438,7 @@ end, 0)
 --  This function gets run when an LSP connects to a particular buffer.
 local on_attach = function(_, bufnr)
   -- NOTE: Remember that lua is a real programming language, and as such it is possible
-  -- to define small helper and utility functions so you don"t have to repeat yourself
+  -- to define small helper and utility functions so you don't have to repeat yourself
   -- many times.
   --
   -- In this case, we create a function that lets us more easily define mappings specific
@@ -1440,6 +1489,12 @@ require("which-key").register {
   ["<leader>s"] = { name = "[S]earch", _ = "which_key_ignore" },
   ["<leader>w"] = { name = "[W]orkspace", _ = "which_key_ignore" },
 }
+-- register which-key VISUAL mode
+-- required for visual <leader>hs (hunk stage) to work
+require("which-key").register({
+  ["<leader>"] = { name = "VISUAL <leader>" },
+  ["<leader>h"] = { "Git [H]unk" },
+}, { mode = "v" })
 
 -- mason-lspconfig requires that these setup functions are called in this order
 -- before setting up the servers.
@@ -1466,6 +1521,8 @@ local servers = {
     Lua = {
       workspace = { checkThirdParty = false },
       telemetry = { enable = false },
+      -- NOTE: toggle below to ignore Lua_LS's noisy `missing-fields` warnings
+      diagnostics = { disable = { "missing-fields" } },
     },
   },
 }
