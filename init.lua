@@ -62,6 +62,7 @@ function install_lazy_if_missing()
   vim.opt.runtimepath:prepend(lazypath)
 end
 
+-- [[ Install `lazy.nvim` plugin manager ]]
 install_lazy_if_missing()
 
 -- [[ Configure plugins ]]
@@ -394,6 +395,7 @@ require("lazy").setup({
 
       -- Adds LSP completion capabilities
       "hrsh7th/cmp-nvim-lsp",
+      "hrsh7th/cmp-path",
 
       -- Adds a number of user-friendly snippets
       "rafamadriz/friendly-snippets",
@@ -579,18 +581,24 @@ require("lazy").setup({
   },
 
   -- Colorscheme
+  -- { 
+  --   "catppuccin/nvim",
+  --   config = function()
+  --     vim.cmd.colorscheme("catppuccin")
+  --   end,
+  -- },
   {
     "rebelot/kanagawa.nvim",
     opts = { dimInactive = true },
     config = function()
-      vim.cmd.colorscheme "kanagawa-wave" -- kanagawa-dragon, kanagawa-lotus
+      vim.cmd.colorscheme("kanagawa-wave") -- kanagawa-dragon, kanagawa-lotus
     end,
   },
   -- {
   --   "knghtbrd/tigrana",
   --   priority = 2000,
   --   config = function()
-  --     vim.cmd.colorscheme "tigrana-256-dark"
+  --     vim.cmd.colorscheme("tigrana-256-dark")
   --   end
   -- },
   -- {
@@ -598,7 +606,7 @@ require("lazy").setup({
   --   "navarasu/onedark.nvim",
   --   priority = 1000,
   --   config = function()
-  --     vim.cmd.colorscheme "onedark"
+  --     vim.cmd.colorscheme("onedark")
   --   end,
   -- },
 
@@ -611,7 +619,7 @@ require("lazy").setup({
         highlight_in_insert_mode = true, -- should highlighting also be done in insert mode
         delay = 100, -- delay before the highglight
       })
-      if not string.find(vim.g.colors_name or "", "^kanagawa") then
+      if not string.find(vim.g.colors_name, "^kanagawa") then
         vim.api.nvim_set_hl(0, "MatchArea", { bg = "#4A2400" })
       end
     end
@@ -687,6 +695,7 @@ require("lazy").setup({
 
   -- highlight vertical indent lines
   {
+    -- Add indentation guides even on blank lines
     "lukas-reineke/indent-blankline.nvim",
     config = function()
       local highlight = {
@@ -698,7 +707,7 @@ require("lazy").setup({
         "RainbowViolet",
         "RainbowCyan",
       }
-      local hooks = require "ibl.hooks"
+      local hooks = require("ibl.hooks")
       -- create the highlight groups in the highlight setup hook, so they are reset
       -- every time the colorscheme changes
       hooks.register(
@@ -1196,7 +1205,7 @@ vim.opt.updatetime = 250
 vim.opt.timeoutlen = 300
 
 -- Set completeopt to have a better completion experience
-vim.opt.completeopt = 'menuone,noselect'
+vim.opt.completeopt = 'menuone,noselect,noinsert'
 
 -- NOTE: You should make sure your terminal supports this
 vim.opt.termguicolors = true
@@ -1525,7 +1534,7 @@ local servers = {
       workspace = { checkThirdParty = false },
       telemetry = { enable = false },
       -- NOTE: toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-      diagnostics = { disable = { "missing-fields" } },
+      -- :warnings = { disable = { "missing-fields" } },
     },
   },
 }
@@ -1540,11 +1549,11 @@ capabilities = require("cmp_nvim_lsp").default_capabilities(capabilities)
 -- Ensure the servers above are installed
 local mason_lspconfig = require "mason-lspconfig"
 
-mason_lspconfig.setup {
+mason_lspconfig.setupxi({
   ensure_installed = vim.tbl_keys(servers),
-}
+})
 
-mason_lspconfig.setup_handlers {
+mason_lspconfig.setup_handlers({
   function(server_name)
     require("lspconfig")[server_name].setup {
       capabilities = capabilities,
@@ -1553,7 +1562,7 @@ mason_lspconfig.setup_handlers {
       filetypes = (servers[server_name] or {}).filetypes,
     }
   end,
-}
+})
 
 -- [[ Configure nvim-cmp ]]
 -- See `:help cmp`
@@ -1577,7 +1586,7 @@ cmp.setup({
   mapping = cmp.mapping.preset.insert {
     ["<C-n>"] = cmp.mapping.select_next_item(),
     ["<C-p>"] = cmp.mapping.select_prev_item(),
-    ["<C-d>"] = cmp.mapping.scroll_docs(-4),
+    ["<C-b>"] = cmp.mapping.scroll_docs(-4),
     ["<C-f>"] = cmp.mapping.scroll_docs(4),
     ["<C-Space>"] = cmp.mapping.complete {},
     ["<CR>"] = cmp.mapping.confirm {
